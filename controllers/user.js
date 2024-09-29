@@ -17,7 +17,7 @@ const register = AsyncHandler(async (req, res, next) => {
 
   try {
     if (error) {
-      console.log(value);
+//       console.log(value);
       throw new ApiError(400, error.message);
     }
     if (value) {
@@ -29,7 +29,7 @@ const register = AsyncHandler(async (req, res, next) => {
       createUser.password = undefined;
 
       const token = jwt.sign(
-        { id: createUser._id, userid: createUser.userid },
+        { id: createUser._id, userid: createUser.userid ,role:createUser.role},
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRY }
       );
@@ -81,8 +81,9 @@ const login = AsyncHandler(async (req, res, next) => {
             throw new ApiError(400, "Invalid Password");
           }
       
+          checkUser.password = undefined;
           const token = jwt.sign(
-            { id: checkUser._id, userid: checkUser.userid },
+            { id: checkUser._id, userid: checkUser.userid ,role:checkUser.role},
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRY }
           );
@@ -106,6 +107,7 @@ const login = AsyncHandler(async (req, res, next) => {
 const logout = AsyncHandler(async (req, res, next) => {
 
         const user = req.user;
+        // console.log(user)
   try {
     res.status(200)
        .clearCookie("userDetails",{

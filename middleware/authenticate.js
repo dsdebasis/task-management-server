@@ -12,7 +12,7 @@ const authenticate = AsyncHandler(async (req,res,next)=>{
          }   
          
          const verifyToken = jwt.verify(findToken,process.env.JWT_SECRET);
-         console.log(verifyToken);
+        //  console.log(verifyToken);
          
          if(verifyToken){
           req.user = verifyToken;
@@ -24,3 +24,11 @@ const authenticate = AsyncHandler(async (req,res,next)=>{
 })
 
 export {authenticate};
+
+const checAdmin = AsyncHandler(async (req,res,next)=>{
+
+        if(req.user.role !== "admin"){
+          throw new ApiError(400,"Access Denied");
+        }
+        next();
+})
