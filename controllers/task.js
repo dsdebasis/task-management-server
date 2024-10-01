@@ -101,14 +101,11 @@ const createTask = AsyncHandler(async (req, res, next) => {
 });
 
 const getTask = AsyncHandler(async (req, res, next) => {
-  const page = req.query.page || 1;
-  // console.log(req.query);
+
   if (req.user.role == "user") {
     const findAllTask = await Task.find({
       $or:[{createdBy: req.user.id},{assignedUser:{$in:[req.user.userid]}}]
     })
-      .skip((page - 1) * 5)
-      .limit(5);
 
     if (!findAllTask || findAllTask.length == 0) {
       throw new ApiError(400, "No task found");
@@ -121,8 +118,6 @@ const getTask = AsyncHandler(async (req, res, next) => {
 
   if (req.user.role == "admin") {
     const findAllTask = await Task.find()
-      .skip((page - 1) * 5)
-      .limit(5);
     if (!findAllTask || findAllTask.length == 0) {
       throw new ApiError(400, "No task found");
     } else {

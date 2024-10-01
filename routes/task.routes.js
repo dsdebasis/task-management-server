@@ -17,7 +17,7 @@ router.route("/create")
 // router.route("/delete", authenticate,deleteTask);
 router.route("/get-users")
       .get(authenticate,getAllUsers) 
-router.route("/get-task/:page")
+router.route("/get-task/")
       .post(authenticate,getTask)      
 
 router.route("/get-taskBy-status")
