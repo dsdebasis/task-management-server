@@ -19,16 +19,17 @@ const taskSchemaByAdmin = Joi.object({
         description:Joi.string().required().min(3).max(500),
         status:Joi.string().valid("inProgress","completed","todo").default("todo"),
         priority:Joi.string().valid("high","medium","low").default("low"),
-        dueDate:Joi.date().required(),
-        assignedUser:Joi.array().items(Joi.string()).required().min(1),
+        dueDate:Joi.date().required().greater("now"),
+        assignedUser:Joi.string().required().min(3),
 })
 
 const taskSchemaByUser = Joi.object({
         title:Joi.string().required().min(3).max(50),
         description:Joi.string().required().min(3).max(500),
-        status:Joi.string().valid("inProgress","completed","todo").default("todo"),
+        status:Joi.string().valid("todo").default("todo"),
         priority:Joi.string().valid("high","medium","low").default("low"),
-        dueDate:Joi.date().required(),
+        dueDate:Joi.date().required().greater("now"),
+        assignedUser:Joi.not()
 })
 
 const updateTaskSchemaByAdmin = Joi.object({
@@ -38,7 +39,7 @@ const updateTaskSchemaByAdmin = Joi.object({
         status:Joi.string().valid("inProgress","completed","todo").default("todo"),
         priority:Joi.string().valid("high","medium","low").default("low"),
         dueDate:Joi.date(),
-        assignedUser:Joi.array().items(Joi.string()).required().min(1),
+        assignedUser:Joi.string(),
 })
 
 const updateTaskSchemaByUser = Joi.object({

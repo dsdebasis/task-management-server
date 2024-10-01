@@ -18,20 +18,20 @@ router.route("/create")
 router.route("/get-users")
       .get(authenticate,getAllUsers) 
 router.route("/get-task/:page")
-      .get(authenticate,getTask)      
+      .post(authenticate,getTask)      
 
 router.route("/get-taskBy-status")
-      .get(authenticate,getTaskByStatus)
+      .post(authenticate,getTaskByStatus)
 
 router.route("/get-taskBy-priority")
-      .get(authenticate,getTaskByPriority)      
+      .post(authenticate,getTaskByPriority)      
 
 router.route("/get-taskBy-assignedUser")
-      .get(authenticate,getTaskByAssignedUser)      
+      .post(authenticate,getTaskByAssignedUser)      
 
 router.route("/update-task")
       .post(authenticate,updateTask)      
-router.route("/delete-task")
+router.route("/delete-task/:taskId")
       .delete(authenticate,deleteTask)      
 
 router.route("/task-report")

@@ -47,6 +47,9 @@ const createTask = AsyncHandler(async (req, res, next) => {
       //adding createdBy feild for task creaters
       validatedTaskDetails.createdBy = user.id;
 
+      let convertAssignedUsersToArray = validatedTaskDetails.assignedUser.split(" ")
+    // console.log(convertAssignedUsersToArray)
+    validatedTaskDetails.assignedUser = convertAssignedUsersToArray;
       const seletedUsers = validatedTaskDetails.assignedUser
 
       // console.log(Array.isArray(seletedUsers))
@@ -99,7 +102,7 @@ const createTask = AsyncHandler(async (req, res, next) => {
 
 const getTask = AsyncHandler(async (req, res, next) => {
   const page = req.query.page || 1;
-  console.log(req.query);
+  // console.log(req.query);
   if (req.user.role == "user") {
     const findAllTask = await Task.find({
       $or:[{createdBy: req.user.id},{assignedUser:{$in:[req.user.userid]}}]
@@ -138,14 +141,35 @@ const getTaskByStatus = AsyncHandler(async (req, res, next) => {
 
   if (
     req.body.status === "todo" ||
-    req.body.status === "progress" ||
+    req.body.status === "inProgress" ||
     req.body.status === "completed"
   ) {
     if (req.user.role == "user") {
-      const findAllTask = await Task.find({
-        createdBy: req.user.id,
-        status: req.body.status,
-      }).select("-assignedUser -createdAt -updatedAt -priority");
+      // console.log("user");
+      const findAllTask = await Task.aggregate([
+        {
+          $match: {
+            $or: [
+              
+              { assignedUser: { $in: [req.user.userid] } },
+              { createdBy: req.user.id },
+            ],
+          },
+        },
+        {
+          $match: { status: req.body.status },
+        },
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            description: 1,
+            status: 1,
+            assignedUser: 1,  
+            dueDate: 1,
+          },
+        },
+      ])
 
       if (!findAllTask || findAllTask.length == 0) {
         throw new ApiError(400, "No task found based on status");
@@ -155,12 +179,12 @@ const getTaskByStatus = AsyncHandler(async (req, res, next) => {
           .json(new ApiResponse(200, "All Task", findAllTask));
       }
     } else if (req.user.role == "admin") {
-      //   console.log("admin");
+        // console.log("admin");
       const findAllTask = await Task.find({ status: req.body.status }).select(
         "-priority -createdAt -updatedAt"
       );
 
-      //   console.log(findAllTask);
+        // console.log(findAllTask);
       if (!findAllTask || findAllTask.length == 0) {
         throw new ApiError(400, "No task found based on status");
       } else {
@@ -185,10 +209,26 @@ const getTaskByPriority = AsyncHandler(async (req, res, next) => {
     req.body.priority === "high"
   ) {
     if (req.user.role == "user") {
-      const findTask = await Task.find({
-        createdBy: req.user.id,
-        priority: req.body.priority,
-      }).select("-assignedUser -status -createdAt -updatedAt");
+      const findTask = await Task.aggregate([
+        {
+          $match: {
+            $or: [
+              { assignedUser: { $in: [req.user.userid] } },
+              { createdBy: req.user.id },
+            ],
+          },
+        },{
+          $match: { priority: req.body.priority },
+        },{
+          $project: {
+            _id: 1,
+            title: 1,
+            description: 1,
+            priority: 1,
+            assignedUser: 1,  
+          },
+        }
+      ])
 
       if (!findTask || findTask.length == 0) {
         throw new ApiError(400, "No task found based on priority");
@@ -196,9 +236,10 @@ const getTaskByPriority = AsyncHandler(async (req, res, next) => {
         return res.status(200).json(new ApiResponse(200, "All Task", findTask));
       }
     } else if (req.user.role == "admin") {
+
       const findTask = await Task.find({
         priority: req.body.priority,
-        createdBy: req.user.id,
+      
       }).select(" -createdAt -updatedAt -status ");
       if (!findTask || findTask.length == 0) {
         throw new ApiError(400, "No task found based on priority");
@@ -220,7 +261,7 @@ const getTaskByAssignedUser = AsyncHandler(async (req, res, next) => {
     }
     const findTask = await Task.find({
       assignedUser: req.body.assignedUser,
-      createdBy: req.user.id,
+   
     }).select("-priority -status -createdAt -updatedAt");
     if (!findTask || findTask.length == 0) {
       throw new ApiError(400, "No task found based on assignedUser");
@@ -286,12 +327,13 @@ const updateTask = AsyncHandler(async (req, res, next) => {
 
 const deleteTask = AsyncHandler(async (req, res, next) => {
   const user = req.user;
-
+  // console.log(req.params.taskId)
+  // console.log(user)
   if(user.role == "admin"){
-    if(!req.body?.taskId){
+    if(!req.params?.taskId){
       throw new ApiError(400, "Please provide task id");
     }
-    const deleteTask = await Task.deleteOne({ _id: req.body?.taskId });
+    const deleteTask = await Task.deleteOne({ _id: req.params?.taskId });
     if (!deleteTask || deleteTask.length == 0) {
       throw new ApiError(400, "Unable to delete task");
     } else {
@@ -302,25 +344,26 @@ const deleteTask = AsyncHandler(async (req, res, next) => {
   }
   if(user.role == "user"){
      
-    if(!req.body?.taskId){
+    if(!req.params?.taskId){
       throw new ApiError(400, "Please provide task id");
     }
     const findTaskCreatedByUser = await Task.findOne({
-      $and:[{createdBy: user.id},{_id: req.body?.taskId}]
+      $and:[{createdBy: user.id},{_id: req.params?.taskId}]
     });
-    // console.log()
+    // console.log(findTaskCreatedByUser)
     if (!findTaskCreatedByUser || findTaskCreatedByUser.length == 0) {
       throw new ApiError(400, "you can not delete task thar are not created by you");
     } else {
       // return res.status(200).json(new ApiResponse(200, "Task deleted", findTaskCreatedByUser));
-      const deleteTask = await Task.deleteOne({ _id: req.body?.taskId });
+      // console.log(req.params.taskId)
+      const deleteTask = await Task.findOneAndDelete({ _id: req.params?.taskId }, { new: true });
+      // console.log(deleteTask)
       if (!deleteTask || deleteTask.length == 0) {
         throw new ApiError(400, "Unable to delete task");
-      } else {
-        return res
-          .status(200)
-          .json(new ApiResponse(200, "Task deleted", deleteTask));
       }
+
+      return res.status(200).json(new ApiResponse(200,"Task deleted",deleteTask));
+      
     }
   }
 });
