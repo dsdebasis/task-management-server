@@ -30,7 +30,8 @@ router.route("/get-taskBy-assignedUser")
       .post(authenticate,getTaskByAssignedUser)      
 
 router.route("/update-task")
-      .post(authenticate,updateTask)      
+      .put(authenticate,updateTask)  
+
 router.route("/delete-task/:taskId")
       .delete(authenticate,deleteTask)      
 

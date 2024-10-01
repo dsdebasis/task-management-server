@@ -36,10 +36,10 @@ const updateTaskSchemaByAdmin = Joi.object({
         id:Joi.string().required(),
         title:Joi.string().min(3).max(50),
         description:Joi.string().min(3).max(500),
-        status:Joi.string().valid("inProgress","completed","todo").default("todo"),
-        priority:Joi.string().valid("high","medium","low").default("low"),
+        status:Joi.string().valid("inProgress","completed","todo").required(),
+        priority:Joi.string().valid("high","medium","low").required(),
         dueDate:Joi.date(),
-        assignedUser:Joi.string(),
+        assignedUser:Joi.string().not(),
 })
 
 const updateTaskSchemaByUser = Joi.object({

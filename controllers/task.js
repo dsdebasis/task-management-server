@@ -61,7 +61,7 @@ const createTask = AsyncHandler(async (req, res, next) => {
       }
 
       if(findAllUser.length != seletedUsers.length){
-        throw new ApiError(400, "on or more users not found");
+        throw new ApiError(400, "one or more userid does not found");
       }
 
       try {
@@ -277,16 +277,28 @@ const updateTask = AsyncHandler(async (req, res, next) => {
   const user = req.user;
 
   //  const {updateDetails} = req.body;
-
+  // console.log(req.body)
   if (user.role == "admin") {
     const validateUpdateTask = updateTaskSchemaByAdmin.validate(req.body, {
       abortEarly: false,
-    });
+    }); 
 
     const { error, value } = validateUpdateTask;
     // console.log("val",value,error)
     if (error) {
       throw new ApiError(400, error.message);
+    }
+
+    value.assignedUser = value.assignedUser.split(" ");
+    const findAllUser = await User.find({userid: {$in: value.assignedUser}})
+
+
+    if (!findAllUser || findAllUser.length == 0) {
+      throw new ApiError(400, "no user found");
+    }
+
+    if(findAllUser.length != value.assignedUser.length){
+      throw new ApiError(400, "one or more userid does not found");
     }
 
     try {
