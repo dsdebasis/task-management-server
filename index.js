@@ -14,7 +14,8 @@ dbConfig(process.env.DB_URI).then(()=>{
     app.listen(PORT, () => {
         console.log(`server is running on port ${process.env.PORT}`)
 })
-}).catch(()=>{
-
+}).catch((error)=>{
+    throw new Error(error)
+    console.log("Error while connecting to db",error.message)
 })
 
